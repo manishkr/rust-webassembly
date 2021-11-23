@@ -2,6 +2,7 @@ mod utils;
 use std::fmt;
 use wasm_bindgen::prelude::*;
 extern crate js_sys;
+extern crate web_sys;
 extern crate fixedbitset;
 use fixedbitset::FixedBitSet;
 
@@ -10,6 +11,14 @@ use fixedbitset::FixedBitSet;
 #[cfg(feature = "wee_alloc")]
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
+// A macro to provide `println!(..)`-style syntax for `console.log` logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
 
 #[wasm_bindgen]
 pub struct Universe {
@@ -57,7 +66,7 @@ impl Universe {
 #[wasm_bindgen]
 impl Universe {
   pub fn new() -> Universe {
-    let width = 64;
+    let width = 128;
     let height = 64;
 
     let size = (width * height) as usize;
@@ -114,6 +123,13 @@ impl Universe {
         let idx = self.get_index(row, col);
         let cell = self.cells[idx];
         let live_neighbors = self.live_neighbor_count(row, col);
+        log!(
+          "cell[{}, {}] is initially {:?} and has {} live neighbors",
+          row,
+          col,
+          cell,
+          live_neighbors
+        );
         next.set(idx, match (cell, live_neighbors) {
           (true, x) if x < 2 => false,
           (true, 2) | (true, 3) => true,
@@ -124,7 +140,13 @@ impl Universe {
       }
     }
 
+    log!("    it becomes {:?}", next);
     self.cells = next;
+  }
+
+  pub fn toggle_cell(&mut self, row: u32, column: u32) {
+    let idx = self.get_index(row, column);
+    self.cells.toggle(idx)
   }
 }
 
