@@ -73,7 +73,9 @@ impl Universe {
     let mut cells = FixedBitSet::with_capacity(size);
 
     for i in 0..size {
-      cells.set(i, i % 2 == 0 || i % 7 == 0);
+      if js_sys::Math::random() < 0.5 {
+        cells.set(i, true);
+      }
     }
 
     Universe {
@@ -83,6 +85,9 @@ impl Universe {
     }
   }
 
+  fn size(&self) -> usize {
+    (self.width * self.height) as usize
+  }
   /// Set the width of the universe.
   ///
   /// Resets all cells to the dead state.
@@ -147,6 +152,14 @@ impl Universe {
   pub fn toggle_cell(&mut self, row: u32, column: u32) {
     let idx = self.get_index(row, column);
     self.cells.toggle(idx)
+  }
+
+  pub fn reset_cells(&mut self) {
+    for i in 0..self.size() {
+      if js_sys::Math::random() < 0.5 {
+        self.cells.set(i, true);
+      }
+    }
   }
 }
 
